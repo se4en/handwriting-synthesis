@@ -6,7 +6,8 @@ from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.ops import tensor_array_ops
 from tensorflow.python.ops import variable_scope as vs
-from tensorflow.python.ops.rnn_cell_impl import _concat, _like_rnncell
+from tensorflow.python.ops.rnn_cell_impl import _concat#, _like_rnncell
+from tensorflow.python.ops.rnn_cell_impl import assert_like_rnncell
 from tensorflow.python.ops.rnn import _maybe_tensor_shape_from_tensor
 from tensorflow.python.util import nest
 from tensorflow.python.framework import tensor_shape
@@ -26,10 +27,11 @@ def raw_rnn(cell, loop_fn, parallel_iterations=None, swap_memory=False, scope=No
         final cell state,
     )
     """
-    if not _like_rnncell(cell):
-        raise TypeError("cell must be an instance of RNNCell")
-    if not callable(loop_fn):
-        raise TypeError("loop_fn must be a callable")
+    # if not _like_rnncell(cell):
+    #if not assert_like_rnncell("error", cell):
+    #    raise TypeError(f"cell must be an instance of RNNCell {type(cell)}")
+    #if not callable(loop_fn):
+    #    raise TypeError("loop_fn must be a callable")
 
     parallel_iterations = parallel_iterations or 32
 
@@ -37,9 +39,9 @@ def raw_rnn(cell, loop_fn, parallel_iterations=None, swap_memory=False, scope=No
     # determined by the parent scope, or is set to place the cached
     # Variable using the same placement as for the rest of the RNN.
     with vs.variable_scope(scope or "rnn") as varscope:
-        if context.in_graph_mode():
-            if varscope.caching_device is None:
-                varscope.set_caching_device(lambda op: op.device)
+        #if context.in_graph_mode():
+        #    if varscope.caching_device is None:
+        #        varscope.set_caching_device(lambda op: op.device)
 
         time = constant_op.constant(0, dtype=dtypes.int32)
         (elements_finished, next_input, initial_state, emit_structure,
@@ -55,9 +57,12 @@ def raw_rnn(cell, loop_fn, parallel_iterations=None, swap_memory=False, scope=No
 
         for input_shape_i in input_shape:
             # Static verification that batch sizes all match
-            static_batch_size.merge_with(input_shape_i[0])
+            if static_batch_size:
+                static_batch_size.merge_with(input_shape_i[0])
+            else:
+                static_batch_size = input_shape_i[0]
 
-        batch_size = static_batch_size.value
+        batch_size = static_batch_size.value if static_batch_size else None
         const_batch_size = batch_size
         if batch_size is None:
             batch_size = array_ops.shape(flat_input[0])[0]

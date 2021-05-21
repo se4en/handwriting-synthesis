@@ -74,7 +74,8 @@ class Hand(object):
         if styles is not None:
             for i, (cs, style) in enumerate(zip(lines, styles)):
                 x_p = np.load('styles/style-{}-strokes.npy'.format(style))
-                c_p = np.load('styles/style-{}-chars.npy'.format(style)).tostring().decode('utf-8')
+                # c_p = np.load('styles/style-{}-chars.npy'.format(style)).tostring().decode('utf-8')
+                c_p = np.load('styles/style-{}-chars.npy'.format(style)).tobytes().decode('utf-8')
 
                 c_p = str(c_p) + " " + cs
                 c_p = drawing.encode_ascii(c_p)
@@ -156,8 +157,11 @@ if __name__ == '__main__':
     lines = [
         "Now this is a story all about how",
         "My life got flipped turned upside down",
-        "And I'd like to take a minute, just sit right there",
-        "I'll tell you how I became the prince of a town called Bel-Air",
+        #"And I'd like to take a minute, just sit right there",
+        #"I'll tell you how I became the prince of a town called Bel-Air",
+        "Now this is a story all about how",
+        "My life got flipped turned upside down",
+
     ]
     biases = [.75 for i in lines]
     styles = [9 for i in lines]
